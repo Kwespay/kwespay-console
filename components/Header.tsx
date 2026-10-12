@@ -64,7 +64,7 @@ export function Header({ endpoint }: { endpoint: string }) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur-md">
-      <div className="mx-auto flex h-12 max-w-[1240px] items-center gap-3 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-3 px-4 sm:px-6">
         <a
           href={`${BASE}/`}
           aria-label="KwesPay Console"
@@ -73,9 +73,9 @@ export function Header({ endpoint }: { endpoint: string }) {
           <img
             src={`${BASE}/brand/kwespay-wordmark.png`}
             alt="KwesPay"
-            width={77}
-            height={18}
-            className="kp-logo h-[18px] w-auto select-none"
+            width={111}
+            height={26}
+            className="kp-logo h-[26px] w-auto select-none"
             draggable={false}
           />
           <span aria-hidden className="h-4 w-px bg-border-strong" />

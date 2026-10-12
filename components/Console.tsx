@@ -538,7 +538,7 @@ export function Console() {
             </div>
           </div>
 
-          <div ref={detailsRef} className="scroll-mt-16">
+          <div ref={detailsRef} className="scroll-mt-20">
             <DeveloperDetails open={detailsOpen} onToggle={() => setDetailsOpen((o) => !o)} tab={detailsTab} onTab={setDetailsTab} steps={steps} run={run} evidence={evidence} chain={chainData} code={code} onDownloadEvidence={exportEvidence} />
           </div>
         </section>
