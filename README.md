@@ -129,4 +129,4 @@ pnpm typecheck
 
 Every push to `main` deploys to GitHub Pages (`.github/workflows/pages.yml`). Set `NEXT_PUBLIC_KWESPAY_ENDPOINT` to override the API endpoint.
 
-The SDK comes from `vendor/kwespay-client-*.tgz`. To update it, run `npm pack` in the SDK repo, replace the tarball, then `pnpm install`. The console's SDK integration is in [`src/sdk/run.ts`](src/sdk/run.ts).
+
