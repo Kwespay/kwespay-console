@@ -6,7 +6,7 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 function sdkVersion(): string {
   try {
-    return JSON.parse(readFileSync(join(process.cwd(), "../kwespay-ts/package.json"), "utf8")).version ?? "";
+    return JSON.parse(readFileSync(join(process.cwd(), "node_modules/@kwespay/client/package.json"), "utf8")).version ?? "";
   } catch {
     return "";
   }

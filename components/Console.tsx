@@ -21,7 +21,8 @@ import { TestTokensSheet, type TokenItem } from "./TestTokensSheet";
 import { Button } from "./ui";
 import { WalletSheet } from "./WalletSheet";
 
-const DEFAULT_ENDPOINT = process.env.NEXT_PUBLIC_KWESPAY_ENDPOINT || "http://localhost:8002/graphql";
+const HOSTED_ENDPOINT = process.env.NEXT_PUBLIC_KWESPAY_ENDPOINT || "https://api.testnet.kwespay.xyz/graphql";
+const LOCAL_ENDPOINT = "http://localhost:8002/graphql";
 const MAINNET_HOSTS = ["api.kwespay.xyz", "localhost:8001", "127.0.0.1:8001"];
 const GAS_MIN: Record<string, number> = { evm: 0.0003, sui: 0.05, stellar: 2 };
 
@@ -84,6 +85,7 @@ export function Console() {
   const [detailsTab, setDetailsTab] = useState<DetailsTab>("code");
   const [actionError, setActionError] = useState<string | undefined>(undefined);
 
+  const [defaultEndpoint, setDefaultEndpoint] = useState(HOSTED_ENDPOINT);
   const evm = useEvmWallet();
   const sui = useSuiWallet();
   const stellar = useStellarWallet();
@@ -92,6 +94,7 @@ export function Console() {
   const running = Boolean(run && run.phase !== "completed" && run.phase !== "failed");
 
   useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_KWESPAY_ENDPOINT && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) setDefaultEndpoint(LOCAL_ENDPOINT);
     const p = new URLSearchParams(window.location.search).get("network");
     if (p && TESTNET_NETWORKS.some((n) => n.key === p)) setNetworkKey(p);
     setRuns(readSession<Run[]>("kp-runs", []));
@@ -107,7 +110,7 @@ export function Console() {
 
   const doConnectAccount = useCallback(async (c: Credentials): Promise<boolean> => {
     if (MAINNET_HOSTS.some((h) => c.endpoint.includes(h))) {
-      setAccount({ connected: false, connecting: false, error: `That's the mainnet API. The console only runs on testnet: use ${DEFAULT_ENDPOINT}`, credentials: c, steps: [] });
+      setAccount({ connected: false, connecting: false, error: `That's the mainnet API. The console only runs on testnet: use ${HOSTED_ENDPOINT}`, credentials: c, steps: [] });
       return false;
     }
     setAccount((a) => ({ ...a, connecting: true, error: undefined, credentials: c }));
@@ -388,9 +391,9 @@ export function Console() {
       deadline: run?.payload?.deadline ?? null,
       paymentIdBytes32: run?.payload?.paymentIdBytes32 ?? null,
       txHash: run?.txHash ?? null,
-      endpoint: account.credentials?.endpoint ?? DEFAULT_ENDPOINT,
+      endpoint: account.credentials?.endpoint ?? defaultEndpoint,
     }),
-    [network, eco, evm.chainId, wallet.address, run, account.credentials],
+    [network, eco, evm.chainId, wallet.address, run, account.credentials, defaultEndpoint],
   );
 
   const tokenItems: TokenItem[] = useMemo(() => {
@@ -463,8 +466,8 @@ export function Console() {
   const detailsRef = useRef<HTMLDivElement>(null);
 
   const code = useMemo(
-    () => buildSnippet({ ecosystem: eco, network: network.key, asset, amount: fiat, currency, vendorId: account.credentials?.vendorId, apiKey: account.connected ? account.credentials?.apiKey : undefined, endpoint: account.credentials?.endpoint ?? DEFAULT_ENDPOINT }),
-    [eco, network.key, asset, fiat, currency, account.credentials, account.connected],
+    () => buildSnippet({ ecosystem: eco, network: network.key, asset, amount: fiat, currency, vendorId: account.credentials?.vendorId, apiKey: account.connected ? account.credentials?.apiKey : undefined, endpoint: account.credentials?.endpoint ?? defaultEndpoint }),
+    [eco, network.key, asset, fiat, currency, account.credentials, account.connected, defaultEndpoint],
   );
 
   const showCode = useCallback(() => {
@@ -481,7 +484,7 @@ export function Console() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header endpoint={account.credentials?.endpoint ?? DEFAULT_ENDPOINT} />
+      <Header endpoint={account.credentials?.endpoint ?? defaultEndpoint} />
 
       <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 pt-5 pb-10 sm:px-6">
         <div className="mb-4 flex items-center gap-3">
@@ -549,7 +552,7 @@ export function Console() {
         vendorName={account.vendorName}
         error={account.error}
         credentials={account.credentials}
-        defaultEndpoint={DEFAULT_ENDPOINT}
+        defaultEndpoint={defaultEndpoint}
         onConnect={async (c) => {
           if (await doConnectAccount(c)) setAccountOpen(false);
         }}
