@@ -9,7 +9,11 @@ type Health = "checking" | "ok" | "down";
 
 const SDK_VERSION = process.env.NEXT_PUBLIC_SDK_VERSION;
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
-const NEXT_THEME: Record<Theme, Theme> = { system: "light", light: "dark", dark: "system" };
+const NEXT_THEME: Record<Theme, Theme> = {
+  system: "light",
+  light: "dark",
+  dark: "system",
+};
 const THEME_ICON = { system: "monitor", light: "sun", dark: "moon" } as const;
 
 function host(endpoint: string): string {
@@ -61,12 +65,24 @@ export function Header({ endpoint }: { endpoint: string }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur-md">
       <div className="mx-auto flex h-12 max-w-[1240px] items-center gap-3 px-4 sm:px-6">
-        <a href={`${BASE}/`} aria-label="KwesPay Console" className="flex items-center gap-2.5">
-          <img src={`${BASE}/brand/kwespay-wordmark.png`} alt="KwesPay" width={77} height={18} className="kp-logo h-[18px] w-auto select-none" draggable={false} />
+        <a
+          href={`${BASE}/`}
+          aria-label="KwesPay Console"
+          className="flex items-center gap-2.5"
+        >
+          <img
+            src={`${BASE}/brand/kwespay-wordmark.png`}
+            alt="KwesPay"
+            width={77}
+            height={18}
+            className="kp-logo h-[18px] w-auto select-none"
+            draggable={false}
+          />
           <span aria-hidden className="h-4 w-px bg-border-strong" />
-          <span className="text-[14px] font-medium tracking-[-0.01em] text-text-2">Console</span>
+          <span className="text-[14px] font-medium tracking-[-0.01em] text-text-2">
+            Console
+          </span>
         </a>
-        <span className="rounded-[var(--radius-xs)] border border-warn/25 bg-warn-bg px-1.5 font-mono text-[10px] font-medium leading-[18px] tracking-[0.08em] text-warn">TESTNET</span>
 
         <div className="ml-auto flex items-center gap-1 text-[12px]">
           {SDK_VERSION && (
@@ -75,11 +91,30 @@ export function Header({ endpoint }: { endpoint: string }) {
               <span className="font-mono text-faint">v{SDK_VERSION}</span>
             </span>
           )}
-          {SDK_VERSION && <span aria-hidden className="mx-1 hidden h-4 w-px bg-border md:block" />}
+          {SDK_VERSION && (
+            <span
+              aria-hidden
+              className="mx-1 hidden h-4 w-px bg-border md:block"
+            />
+          )}
           <span className="flex items-center gap-2 px-2" title={endpoint}>
-            <StatusDot tone={health === "ok" ? "ok" : health === "down" ? "error" : "idle"} />
-            <span className={cx(health === "down" ? "text-error" : "text-text-2")}>{health === "ok" ? "API healthy" : health === "down" ? "API unreachable" : "Checking API"}</span>
-            <span className="hidden font-mono text-faint lg:inline">{host(endpoint)}</span>
+            <StatusDot
+              tone={
+                health === "ok" ? "ok" : health === "down" ? "error" : "idle"
+              }
+            />
+            <span
+              className={cx(health === "down" ? "text-error" : "text-text-2")}
+            >
+              {health === "ok"
+                ? "API healthy"
+                : health === "down"
+                  ? "API unreachable"
+                  : "Checking API"}
+            </span>
+            <span className="hidden font-mono text-faint lg:inline">
+              {host(endpoint)}
+            </span>
           </span>
           <span aria-hidden className="mx-1 h-4 w-px bg-border" />
           <button
