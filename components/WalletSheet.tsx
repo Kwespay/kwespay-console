@@ -3,6 +3,7 @@
 import type { Wallet } from "@mysten/wallet-standard";
 import type { Ecosystem } from "@/src/networks";
 import type { EvmWalletOption } from "@/src/wallets/evm";
+import type { NearWalletOption } from "@/src/wallets/near";
 import { Icon, LinkButton, Modal, Spinner } from "./ui";
 
 function Row({ name, icon, meta, onClick }: { name: string; icon?: string; meta?: string; onClick: () => void }) {
@@ -48,9 +49,12 @@ export function WalletSheet({
   evmOptions,
   suiOptions,
   freighterInstalled,
+  nearOptions,
+  nearLoading,
   onEvm,
   onSui,
   onFreighter,
+  onNear,
 }: {
   open: boolean;
   onClose: () => void;
@@ -59,11 +63,15 @@ export function WalletSheet({
   evmOptions: EvmWalletOption[];
   suiOptions: Wallet[];
   freighterInstalled: boolean | null;
+  nearOptions: NearWalletOption[];
+  nearLoading: boolean;
   onEvm: (o: EvmWalletOption) => void;
   onSui: (w: Wallet) => void;
   onFreighter: () => void;
+  onNear: (o: NearWalletOption) => void;
 }) {
-  const title = ecosystem === "evm" ? "Connect wallet" : ecosystem === "sui" ? "Connect Sui wallet" : "Connect Stellar wallet";
+  const title = ecosystem === "evm" ? "Connect wallet" : ecosystem === "sui" ? "Connect Sui wallet" : ecosystem === "near" ? "Connect NEAR wallet" : "Connect Stellar wallet";
+  const nearAvailable = nearOptions.filter((o) => o.available);
   return (
     <Modal open={open} onClose={onClose} title={title} description={`For payments on ${networkName}.`} width={400}>
       <div className="space-y-5">
@@ -96,7 +104,24 @@ export function WalletSheet({
             )}
           </Group>
         )}
-        <p className="text-[12px] leading-[1.5] text-muted">Your wallet signs every transaction. KwesPay never asks for your recovery phrase or private key.{(ecosystem === "stellar" ? freighterInstalled === false : ecosystem === "sui" ? !suiOptions.length : !evmOptions.length) && " Refresh this page after installing."}</p>
+        {ecosystem === "near" && (
+          <Group label="NEAR wallets">
+            {nearLoading && !nearOptions.length ? (
+              <div className="flex items-center gap-3 px-3 py-3 text-[13px] text-muted">
+                <Spinner />
+                Loading NEAR wallets
+              </div>
+            ) : nearAvailable.length ? (
+              nearAvailable.map((o) => <Row key={o.id} name={o.name} icon={o.icon} meta={o.type === "injected" ? "Extension" : "Web"} onClick={() => onNear(o)} />)
+            ) : (
+              <>
+                <MissingRow name="Meteor Wallet" href="https://meteorwallet.app" />
+                <MissingRow name="Sender" href="https://sender.org" />
+              </>
+            )}
+          </Group>
+        )}
+        <p className="text-[12px] leading-[1.5] text-muted">Your wallet signs every transaction. KwesPay never asks for your recovery phrase or private key.{(ecosystem === "stellar" ? freighterInstalled === false : ecosystem === "sui" ? !suiOptions.length : ecosystem === "near" ? !nearAvailable.length && !nearLoading : !evmOptions.length) && " Refresh this page after installing."}</p>
       </div>
     </Modal>
   );

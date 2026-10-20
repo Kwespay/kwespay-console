@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@kwespay/client':
-        specifier: file:vendor/kwespay-client-0.1.27.tgz
-        version: file:vendor/kwespay-client-0.1.27.tgz(typescript@5.9.3)
+        specifier: file:vendor/kwespay-client-0.1.28.tgz
+        version: file:vendor/kwespay-client-0.1.28.tgz(typescript@5.9.3)
       '@mysten/sui':
         specifier: ^2.17.0
         version: 2.35.0(typescript@5.9.3)
@@ -23,6 +23,9 @@ importers:
       '@stellar/stellar-sdk':
         specifier: ^16.0.1
         version: 16.3.1
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
       next:
         specifier: 16.1.6
         version: 16.1.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -259,9 +262,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@kwespay/client@file:vendor/kwespay-client-0.1.27.tgz':
-    resolution: {integrity: sha512-vRvoBMtfQL5SMZ1o3aWyrBVTYYfHg8yhwOdhG1O7H8xUCGTqc+Iwh2aTdvB/AiqJ9DObgy/FxPWSDadz6QkdNQ==, tarball: file:vendor/kwespay-client-0.1.27.tgz}
-    version: 0.1.27
+  '@kwespay/client@file:vendor/kwespay-client-0.1.28.tgz':
+    resolution: {integrity: sha512-OyQB6n0Bd3B0AUjpZxuUtNfc9kej8iStZiNCn53zNEZ8+tK9rhume+Gk+PuH4ffgCSFEY6ZbEX/Ba0/1YTj5fQ==, tarball: file:vendor/kwespay-client-0.1.28.tgz}
+    version: 0.1.28
     engines: {node: '>=18'}
 
   '@mysten/bcs@2.1.2':
@@ -1106,7 +1109,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@kwespay/client@file:vendor/kwespay-client-0.1.27.tgz(typescript@5.9.3)':
+  '@kwespay/client@file:vendor/kwespay-client-0.1.28.tgz(typescript@5.9.3)':
     dependencies:
       '@mysten/sui': 2.35.0(typescript@5.9.3)
       '@stellar/stellar-sdk': 16.3.1

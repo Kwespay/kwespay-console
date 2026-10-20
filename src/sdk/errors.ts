@@ -65,7 +65,9 @@ export function friendlyError(e: unknown, ctx: ErrorContext): FriendlyError {
       return {
         ...base,
         title: "Payment rejected",
-        message: "The KwesPay payment contract rejected this transaction.",
+        message: /panicked|refunded/i.test(detail)
+          ? `The KwesPay payment contract rejected this transaction: ${detail.replace(/^.*panicked:\s*/i, "").replace(/^Payment refunded:\s*/i, "")}`
+          : "The KwesPay payment contract rejected this transaction.",
         funds: ctx.submitted ? "No payment was taken. You may have paid a small network fee." : noFunds,
         action: { kind: "retry", label: "Try again" },
       };

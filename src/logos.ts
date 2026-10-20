@@ -16,11 +16,14 @@ const CHAIN: Record<string, LogoAsset> = {
   mezoTestnet: asset("mezo.png"),
   suiTestnet: asset("sui.svg"),
   stellarTestnet: asset("stellar.png", true),
+  nearTestnet: asset("near.jpg"),
 };
 
 const TOKEN: Record<string, LogoAsset> = {
   ETH: asset("eth.svg"),
   USDC: asset("usdc.svg"),
+  "USDC.E": asset("usdc.svg"),
+  NEAR: asset("near.jpg"),
   USDT: asset("usdt.svg"),
   ARB: asset("arb.svg"),
   POL: asset("pol.png"),

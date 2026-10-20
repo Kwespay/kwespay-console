@@ -1,9 +1,10 @@
-export type Ecosystem = "evm" | "sui" | "stellar";
+export type Ecosystem = "evm" | "sui" | "stellar" | "near";
 
 export type TokenSource =
   | { kind: "kwespay"; maxPerRequest: number }
   | { kind: "circle" }
   | { kind: "stellar-swap" }
+  | { kind: "near-mint"; amount: number }
   | { kind: "none" };
 
 export interface ConsoleToken {
@@ -46,6 +47,8 @@ const kwespayUsdt = (address: string): ConsoleToken => ({
   stable: true,
   source: { kind: "kwespay", maxPerRequest: 10_000 },
 });
+
+export const NEAR_TESTNET_RPC = "https://test.rpc.fastnear.com";
 
 export const STELLAR_TESTNET_PASSPHRASE = "Test SDF Network ; September 2015";
 export const STELLAR_HORIZON = "https://horizon-testnet.stellar.org";
@@ -138,6 +141,22 @@ export const TESTNET_NETWORKS: ConsoleNetwork[] = [
     ],
   },
   {
+    key: "nearTestnet",
+    name: "NEAR Testnet",
+    ecosystem: "near",
+    rpcUrl: NEAR_TESTNET_RPC,
+    explorer: "https://testnet.nearblocks.io",
+    explorerTx: "https://testnet.nearblocks.io/txns/",
+    explorerAddress: "https://testnet.nearblocks.io/address/",
+    native: { symbol: "NEAR", name: "Test NEAR", decimals: 24 },
+    gasFaucet: { kind: "link", url: "https://near-faucet.io" },
+    tokens: [
+      { symbol: "USDC.E", name: "Bridged test USDC", address: "usdc.fakes.testnet", decimals: 6, stable: true, source: { kind: "near-mint", amount: 100 } },
+      { symbol: "USDT", name: "Bridged test USDT", address: "usdt.fakes.testnet", decimals: 6, stable: true, source: { kind: "near-mint", amount: 100 } },
+      circleUsdc("3e2210e1184b45b64c8a434c0a7e7b23cc04ea7eb7a6c3c32520d03d4afcb8af"),
+    ],
+  },
+  {
     key: "liskTestnet",
     name: "Lisk Sepolia",
     ecosystem: "evm",
@@ -164,7 +183,7 @@ export const TESTNET_NETWORKS: ConsoleNetwork[] = [
   },
 ];
 
-export const ECOSYSTEM_NAME: Record<Ecosystem, string> = { evm: "EVM", sui: "Sui", stellar: "Stellar" };
+export const ECOSYSTEM_NAME: Record<Ecosystem, string> = { evm: "EVM", sui: "Sui", stellar: "Stellar", near: "NEAR" };
 
 export function networkByKey(key: string): ConsoleNetwork {
   return TESTNET_NETWORKS.find((n) => n.key === key) ?? TESTNET_NETWORKS[0];

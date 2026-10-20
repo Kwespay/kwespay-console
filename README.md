@@ -82,9 +82,17 @@ KwesPay sets every payment term, and the browser can't change them. Read the fee
 |---|---|---|
 | **Stellar Testnet** | XLM, USDC | Freighter |
 | Sui Testnet | SUI | Sui wallets (e.g. Slush) |
+| NEAR Testnet | NEAR, USDC.e, USDT, USDC | Meteor, Intear or Sender |
 | Base Sepolia, Ethereum Sepolia, Arbitrum Sepolia, Polygon Amoy, Lisk Sepolia, Mezo Testnet | Native token plus USDC, USDT, ARB or LSK (varies by network) | MetaMask, Rabby or any EIP-6963 wallet |
 
 The console only offers the tokens your merchant accepts. Amounts can use any ISO 4217 currency. USD, GHS, NGN, KES, ZAR and ZWG are listed first.
+
+## NEAR Testnet
+
+1. [Open the console](https://kwespay.github.io/kwespay-console/?network=nearTestnet) on NEAR Testnet and connect your merchant (NEAR Testnet enabled, with a NEAR receiving account).
+2. **Connect wallet** and pick Meteor, Intear or Sender. The console loads NEAR wallet support only when you open this network.
+3. **Test tokens**: get test NEAR from the NEAR faucet, then press **Get 100 test USDC.e** or **Get 100 test USDT**. The first mint also registers your account with the token. Circle USDC comes from Circle's faucet.
+4. Send. Native NEAR goes through `pay_near`; stablecoins go through `ft_transfer_call` on the token. KwesPay's NEAR fee is 1%.
 
 ## Payment statuses
 

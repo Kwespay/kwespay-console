@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@kwespay/client": "file:vendor/kwespay-client-0.1.27.tgz",
+    "@kwespay/client": "file:vendor/kwespay-client-0.1.28.tgz",
+    "buffer": "^6.0.3",
     "@mysten/sui": "^2.17.0",
     "@mysten/wallet-standard": "^0.21.33",
     "@stellar/freighter-api": "^6.0.1",

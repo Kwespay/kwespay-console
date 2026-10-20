@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MerchantConfig, PayParams, TransactionPayload } from "@kwespay/client";
 import { assetsFor, networkByKey, TESTNET_NETWORKS, type ConsoleNetwork } from "@/src/networks";
-import { connectAccount, previewQuote, runPayment, type Credentials, type Run, type Step } from "@/src/sdk/run";
+import { connectAccount, makeClient, previewQuote, runPayment, type Credentials, type Run, type Step } from "@/src/sdk/run";
 import { errorCode, friendlyError } from "@/src/sdk/errors";
 import { buildSnippet } from "@/src/sdk/snippet";
 import { readSession, writeSession } from "@/src/storage";
@@ -11,6 +11,7 @@ import { mintKwespayToken, requestTestSui } from "@/src/tokens";
 import { chainName, evmBalances, useEvmWallet } from "@/src/wallets/evm";
 import { suiBalance, useSuiWallet } from "@/src/wallets/sui";
 import { buyTestUsdc, enableUsdc, friendbot, stellarAccount, useStellarWallet, type StellarAccountInfo } from "@/src/wallets/stellar";
+import { mintNearTestToken, nearBalances, useNearWallet } from "@/src/wallets/near";
 import { AccountModal } from "./AccountModal";
 import { Composer, type AssetChoice, type Issue, type Preview, type Readiness } from "./Composer";
 import { DeveloperDetails, type DetailsTab, type EvidenceRow } from "./DeveloperDetails";
@@ -24,7 +25,7 @@ import { WalletSheet } from "./WalletSheet";
 const HOSTED_ENDPOINT = process.env.NEXT_PUBLIC_KWESPAY_ENDPOINT || "https://api.testnet.kwespay.xyz/graphql";
 const LOCAL_ENDPOINT = "http://localhost:8002/graphql";
 const MAINNET_HOSTS = ["api.kwespay.xyz", "localhost:8001", "127.0.0.1:8001"];
-const GAS_MIN: Record<string, number> = { evm: 0.0003, sui: 0.05, stellar: 2 };
+const GAS_MIN: Record<string, number> = { evm: 0.0003, sui: 0.05, stellar: 2, near: 0.05 };
 
 interface AccountState {
   connected: boolean;
@@ -89,8 +90,14 @@ export function Console() {
   const evm = useEvmWallet();
   const sui = useSuiWallet();
   const stellar = useStellarWallet();
+  const near = useNearWallet();
   const network = networkByKey(networkKey);
   const eco = network.ecosystem;
+  const nearDiscover = near.discover;
+
+  useEffect(() => {
+    if (eco === "near") void nearDiscover();
+  }, [eco, nearDiscover]);
   const running = Boolean(run && run.phase !== "completed" && run.phase !== "failed");
 
   useEffect(() => {
@@ -135,8 +142,9 @@ export function Console() {
   const wallet = useMemo(() => {
     if (eco === "evm") return { connected: evm.status === "connected", connecting: evm.status === "connecting", name: evm.wallet?.name ?? "your wallet", icon: evm.wallet?.icon, address: evm.address, error: evm.error };
     if (eco === "sui") return { connected: sui.status === "connected", connecting: sui.status === "connecting", name: sui.wallet?.name ?? "your Sui wallet", icon: sui.wallet?.icon as string | undefined, address: sui.account?.address, error: sui.error };
+    if (eco === "near") return { connected: near.status === "connected", connecting: near.status === "connecting", name: near.walletName ?? "your NEAR wallet", icon: near.walletIcon, address: near.accountId, error: near.error };
     return { connected: stellar.status === "connected", connecting: stellar.status === "connecting", name: "Freighter", icon: undefined, address: stellar.address, error: stellar.error };
-  }, [eco, evm, sui, stellar]);
+  }, [eco, evm, sui, stellar, near]);
 
   const switchNetwork = useCallback(async () => {
     setActionError(undefined);
@@ -170,6 +178,9 @@ export function Console() {
         } else if (eco === "sui") {
           const s = await suiBalance(address);
           if (alive) setBalances({ SUI: s });
+        } else if (eco === "near") {
+          const b = await nearBalances(network, address);
+          if (alive) setBalances(b);
         } else {
           const info = await stellarAccount(address);
           if (alive) {
@@ -280,7 +291,7 @@ export function Console() {
   const readiness: Readiness = useMemo(() => {
     if (!account.connected) return { tone: "hint", title: "Start by connecting your KwesPay account.", step: 1 };
     if (!networkEnabled) return { tone: "warn", title: `${network.name} isn't enabled for this merchant`, message: "Choose another network, or enable it in your KwesPay dashboard." };
-    if (!wallet.connected) return { tone: "hint", title: eco === "stellar" ? "Now connect a Stellar wallet." : eco === "sui" ? "Now connect a Sui wallet." : "Now connect a wallet.", step: 2 };
+    if (!wallet.connected) return { tone: "hint", title: eco === "stellar" ? "Now connect a Stellar wallet." : eco === "sui" ? "Now connect a Sui wallet." : eco === "near" ? "Now connect a NEAR wallet." : "Now connect a wallet.", step: 2 };
     if (walletProblem) return { tone: "warn", ...walletProblem };
     if (!assetAvailable) return { tone: "warn", title: "No accepted token on this network", message: `This merchant doesn't accept any token the console can use on ${network.name}.` };
     if (issues.length) return { tone: "warn", ...issues[0], more: issues.slice(1) };
@@ -305,7 +316,7 @@ export function Console() {
     if (!account.credentials || !wallet.address) return;
     setActionError(undefined);
     const ecoNow = eco;
-    const adapter = ecoNow === "sui" ? sui.adapter() : ecoNow === "stellar" ? stellar.adapter() : undefined;
+    const adapter = ecoNow === "sui" ? sui.adapter() : ecoNow === "stellar" ? stellar.adapter() : ecoNow === "near" ? near.adapter() : undefined;
     const payParams = (payload: TransactionPayload, onStatus: (t: string, d: string) => void): PayParams => {
       if (ecoNow === "evm") return { provider: evm.wallet!.provider as never, payload, onStatus };
       return { wallet: adapter as never, payload, onStatus };
@@ -328,7 +339,7 @@ export function Console() {
     setRun(final);
     saveRuns(final);
     setRefreshTick((x) => x + 1);
-  }, [account.credentials, account.steps, wallet.address, wallet.name, eco, sui, stellar, evm.wallet, network.key, asset, fiat, currency, saveRuns]);
+  }, [account.credentials, account.steps, wallet.address, wallet.name, eco, sui, stellar, near, evm.wallet, network.key, asset, fiat, currency, saveRuns]);
 
   const runNetwork = run ? networkByKey(run.network) : network;
   const runError = run?.phase === "failed" && run.error
@@ -432,6 +443,11 @@ export function Console() {
             return mintKwespayToken(evm.wallet!.provider, network, t, address!, 1000);
           },
         };
+      } else if (t.source.kind === "near-mint") {
+        const mintAmount = t.source.amount;
+        item.source = "NEAR test token";
+        item.why = `Mints ${mintAmount} test ${t.symbol} to your NEAR account. The first mint also registers your account with the token (0.00125 NEAR).`;
+        item.action = { label: `Get ${mintAmount} test ${t.symbol}`, run: () => mintNearTestToken(network, t, address!, mintAmount, near.send) };
       } else if (t.source.kind === "circle") {
         item.source = "Circle faucet";
         item.external = { url: "https://faucet.circle.com", label: "Open Circle's test token page", note: `We'll open Circle's page and copy your wallet address. Choose ${network.name} there.`, copy: address };
@@ -448,7 +464,7 @@ export function Console() {
       items.push(item);
     }
     return items;
-  }, [wallet.connected, wallet.address, network, balances, evm, stellarInfo, stellar.signXdr]);
+  }, [wallet.connected, wallet.address, network, balances, evm, stellarInfo, stellar.signXdr, near.send]);
 
   const onResultAction = useCallback(
     (kind: string) => {
@@ -505,7 +521,7 @@ export function Console() {
               onShowCode={showCode}
               wallet={wallet}
               onOpenWallet={() => setWalletOpen(true)}
-              onDisconnectWallet={() => (eco === "evm" ? void evm.disconnect() : eco === "sui" ? void sui.disconnect() : stellar.disconnect())}
+              onDisconnectWallet={() => (eco === "evm" ? void evm.disconnect() : eco === "sui" ? void sui.disconnect() : eco === "near" ? void near.disconnect() : stellar.disconnect())}
               assets={assetChoices}
               asset={asset}
               onAsset={setAsset}
@@ -567,6 +583,15 @@ export function Console() {
         evmOptions={evm.options}
         suiOptions={sui.options}
         freighterInstalled={stellar.installed}
+        nearOptions={near.options}
+        nearLoading={near.loading}
+        onNear={async (o) => {
+          setWalletOpen(false);
+          const contractId = account.credentials
+            ? await makeClient(account.credentials).getNetwork(network.key).then((n) => n.contractAddress ?? undefined, () => undefined)
+            : undefined;
+          await near.connect(o, contractId);
+        }}
         onEvm={async (o) => {
           setWalletOpen(false);
           const ok = await evm.connect(o);

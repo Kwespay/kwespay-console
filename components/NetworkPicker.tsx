@@ -8,6 +8,7 @@ const GROUPS: { eco: Ecosystem; label: string }[] = [
   { eco: "evm", label: "EVM" },
   { eco: "sui", label: "Sui" },
   { eco: "stellar", label: "Stellar" },
+  { eco: "near", label: "NEAR" },
 ];
 
 export function NetworkPicker({ selected, enabled, locked, onSelect }: { selected: string; enabled?: string[]; locked: boolean; onSelect: (key: string) => void }) {

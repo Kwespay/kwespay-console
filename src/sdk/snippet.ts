@@ -6,6 +6,7 @@ const WALLET_ARG: Record<Ecosystem, string> = {
   evm: "provider: window.ethereum",
   sui: "wallet: suiWallet",
   stellar: "wallet: freighterWallet",
+  near: "wallet: nearWallet",
 };
 
 export interface SnippetInput {
