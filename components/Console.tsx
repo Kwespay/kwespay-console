@@ -6,7 +6,7 @@ import { assetsFor, networkByKey, TESTNET_NETWORKS, type ConsoleNetwork } from "
 import { connectAccount, makeClient, previewQuote, runPayment, type Credentials, type Run, type Step } from "@/src/sdk/run";
 import { errorCode, friendlyError } from "@/src/sdk/errors";
 import { buildSnippet } from "@/src/sdk/snippet";
-import { readSession, writeSession } from "@/src/storage";
+import { readLocal, readSession, writeLocal, writeSession } from "@/src/storage";
 import { mintKwespayToken, requestTestSui } from "@/src/tokens";
 import { chainName, evmBalances, useEvmWallet } from "@/src/wallets/evm";
 import { suiBalance, useSuiWallet } from "@/src/wallets/sui";
@@ -18,8 +18,9 @@ import { DeveloperDetails, type DetailsTab, type EvidenceRow } from "./Developer
 import { Header } from "./Header";
 import { NetworkPicker } from "./NetworkPicker";
 import { ResultPanel } from "./ResultPanel";
+import { TestTokensIntro } from "./TestTokensIntro";
 import { TestTokensSheet, type TokenItem } from "./TestTokensSheet";
-import { Button } from "./ui";
+import { Button, StatusDot } from "./ui";
 import { WalletSheet } from "./WalletSheet";
 
 const HOSTED_ENDPOINT = process.env.NEXT_PUBLIC_KWESPAY_ENDPOINT || "https://api.testnet.kwespay.xyz/graphql";
@@ -85,6 +86,8 @@ export function Console() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState<DetailsTab>("code");
   const [actionError, setActionError] = useState<string | undefined>(undefined);
+  const [tokensUsed, setTokensUsed] = useState(true);
+  const [introDismissed, setIntroDismissed] = useState(true);
 
   const [defaultEndpoint, setDefaultEndpoint] = useState(HOSTED_ENDPOINT);
   const evm = useEvmWallet();
@@ -105,6 +108,8 @@ export function Console() {
     const p = new URLSearchParams(window.location.search).get("network");
     if (p && TESTNET_NETWORKS.some((n) => n.key === p)) setNetworkKey(p);
     setRuns(readSession<Run[]>("kp-runs", []));
+    setTokensUsed(readLocal("kp-tokens-used") === "1");
+    setIntroDismissed(readSession<boolean>("kp-tokens-intro", false));
     const saved = readSession<Credentials | null>("kp-creds", null);
     if (saved?.apiKey && saved.vendorId) void doConnectAccount(saved);
   }, []);
@@ -253,6 +258,19 @@ export function Console() {
   }, [account.connected, account.credentials, networkEnabled, assetAvailable, fiat, currency, asset, network, running, wallet.name]);
 
   const openTokens = useCallback(() => setTokensOpen(true), []);
+
+  useEffect(() => {
+    if (!tokensOpen || tokensUsed) return;
+    setTokensUsed(true);
+    writeLocal("kp-tokens-used", "1");
+  }, [tokensOpen, tokensUsed]);
+
+  const dismissIntro = useCallback(() => {
+    setIntroDismissed(true);
+    writeSession("kp-tokens-intro", true);
+  }, []);
+
+  const showIntro = !tokensUsed && !introDismissed && !accountOpen && !walletOpen && !tokensOpen;
 
   const issues: Issue[] = useMemo(() => {
     if (!account.connected || !wallet.connected || walletProblem || !networkEnabled || balancesLoading) return [];
@@ -505,10 +523,12 @@ export function Console() {
       <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 pt-5 pb-10 sm:px-6">
         <div className="mb-4 flex items-center gap-3">
           <NetworkPicker selected={networkKey} enabled={account.merchant?.enabledNetworks as string[] | undefined} locked={running} onSelect={setNetworkKey} />
-          <div className="ml-auto flex items-center gap-1">
-            <Button variant="ghost" size="sm" onClick={() => setTokensOpen(true)}>
+          <div className="relative ml-auto flex items-center gap-1">
+            <Button variant={tokensUsed ? "ghost" : "secondary"} size="sm" onClick={() => setTokensOpen(true)} className={tokensUsed ? undefined : "kp-sheen"}>
+              {!tokensUsed && <StatusDot tone="brand" pulse />}
               Test tokens
             </Button>
+            <TestTokensIntro open={showIntro} network={network} onGet={() => setTokensOpen(true)} onDismiss={dismissIntro} />
           </div>
         </div>
 
